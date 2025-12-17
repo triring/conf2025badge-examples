@@ -85,7 +85,7 @@ func DispTime_oled(display ssd1306.Device, t time.Duration) {
 	display.Display()
 }
 
-// tone.A6  6 octaves ド	2093.0 Hz
+// tone.A7  7 octaves ド	2093.0 Hz
 var mute tone.Note = 0 // 無音
 
 func main() {
@@ -153,6 +153,7 @@ func main() {
 	isButtonPressed := false
 	buttonState := true
 
+	pipoSound(speaker) // 起動音
 	DispTime_oled(display, RemainingTime)
 	for {
 		// ボタンの状態を読み取る。
@@ -170,7 +171,7 @@ func main() {
 				// reset
 				RemainingTime = PreviousRemainingTime
 				DispTime_oled(display, RemainingTime)
-				clickSound(speaker) // 無音
+				pipoSound(speaker) // リセット音
 			} else if pressDuration >= shortPressThresholdMs*time.Millisecond {
 				println(">>> 短押しを検出しました！ <<<")
 				if state == Waiting {
@@ -178,14 +179,14 @@ func main() {
 						state = Countdown
 						PreviousRemainingTime = RemainingTime
 						timerStartTime = time.Now()
-						clickSound(speaker) // クリック音
+						clickSound(speaker) // 受付・スタート音
 					} else {
 						println("リセットするか、ボタンを長押しして、計測する時間を再設定して下さい。")
 						errorSound(speaker) // エラー音
 					}
 				} else {
 					state = Waiting
-					clickSound(speaker) // 無音
+					clickSound(speaker) // 受付・スタート音
 				}
 			} else {
 				println("チャタリングまたは非常に短い押し込みとして無視します。")
@@ -217,22 +218,9 @@ func main() {
 			RemainingTime = PreviousRemainingTime - time.Since(timerStartTime)/1000000000
 			if RemainingTime >= 0 {
 				DispTime_oled(display, RemainingTime)
-				/*
-					display.ClearBuffer()
-					DispTime := fmt.Sprintf("%02d:%02d", RemainingTime/60, RemainingTime%60)
-					tinyfont.WriteLine(&display, &freemono.Bold9pt7b, 5, 24, "Timer", white)
-					tinyfont.WriteLine(&display, &freemono.Bold18pt7b, 5, 60, DispTime, white)
-					display.Display()
-				*/
 			} else {
 				state = Waiting
-				// 終了音
-				for loop := 0; loop < 25; loop++ {
-					speaker.SetNote(tone.A7) // 7 octaves ド	2093.0 Hz
-					time.Sleep(time.Millisecond * 100)
-					speaker.SetNote(mute) // 無音
-					time.Sleep(time.Millisecond * 200)
-				}
+				endSound(speaker) // 終了音（近）(4)
 			}
 			break
 		}
@@ -241,7 +229,7 @@ func main() {
 	}
 }
 
-// クリック音
+// 受付・スタート音
 func clickSound(speaker tone.Speaker) {
 	speaker.SetNote(tone.A7) // 7 octaves ド	2093.0 Hz
 	time.Sleep(time.Millisecond * 100)
@@ -252,5 +240,36 @@ func clickSound(speaker tone.Speaker) {
 func errorSound(speaker tone.Speaker) {
 	speaker.SetNote(tone.A3) // 3 octaves ラ	 220.0 Hz
 	time.Sleep(time.Millisecond * 1000)
+	speaker.SetNote(mute)
+}
+
+// 終了音（近）(4)
+func endSound(speaker tone.Speaker) {
+	var on1 time.Duration = 100
+	var off1 time.Duration = 100
+	var on2 time.Duration = 500
+	var off2 time.Duration = 500
+
+	for i := 0; i < 10; i++ {
+		speaker.SetNote(tone.A7) // 7 octaves ド	2093.0 Hz
+		time.Sleep(time.Millisecond * on1)
+		speaker.SetNote(mute)
+		time.Sleep(time.Millisecond * off1)
+		speaker.SetNote(tone.A7) // 7 octaves ド	2093.0 Hz
+		time.Sleep(time.Millisecond * on2)
+		speaker.SetNote(mute)
+		time.Sleep(time.Millisecond * off2)
+	}
+}
+
+// 起動音、リセット音
+// 国民機パソコン PC-9801シリーズの起動音	ピッポ!! を再現
+func pipoSound(speaker tone.Speaker) {
+	speaker.SetNote(tone.B6) // 6 octaves シ	PI 1980 Hz
+	time.Sleep(time.Millisecond * 100)
+	speaker.SetNote(mute)
+	time.Sleep(time.Millisecond * 20)
+	speaker.SetNote(tone.B5) // 5 octaves シ	PO 990 Hz
+	time.Sleep(time.Millisecond * 100)
 	speaker.SetNote(mute)
 }
