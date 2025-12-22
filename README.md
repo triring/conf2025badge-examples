@@ -7,7 +7,7 @@ RP2040チップを搭載した電子ネームタグ[conf2025badge](https://githu
 
 Go Workshop Conference 2025 IN KOBE のワークショップ TinyGo Keeb Tour at GWCで、頒布された電子ネームタグ[conf2025badge](https://github.com/sago35/keyboards/blob/main/conf2025badge/build/build.md) を使用しました。  
 
-![conf2025badge](photo/DSCN0350_800x600.jpg)
+![conf2025badge](./photo/DSCN0350_800x600.jpg)
 
 この電子ネームタグは、Raspberry Pi Pico と同じRP2040チップを搭載したマイコンボード[Seeed Studio XIAO RP2040](https://wiki.seeedstudio.com/XIAO-RP2040/)で作られています。  
 ここで公開しているソースコードは、RP2040チップを使用しているマイコンボードであれば、多少改変すれば、利用できると思います。  
