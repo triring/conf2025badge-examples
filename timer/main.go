@@ -88,6 +88,19 @@ func DispTime_oled(display ssd1306.Device, t time.Duration) {
 // tone.A7  7 octaves ド	2093.0 Hz
 var mute tone.Note = 0 // 無音
 
+// init関数は、パッケージがロードされたときに一度だけ実行されます。
+/*
+func init() {
+	// ブザーが接続されたPinの設定と初期化
+	bzrPin := machine.GPIO1
+	pwm := machine.PWM0
+	speaker, err := tone.New(pwm, bzrPin)
+	if err != nil {
+		println("failed to configure PWM")
+		return
+	}
+}
+*/
 func main() {
 	// ブザーが接続されたPinの設定と初期化
 	bzrPin := machine.GPIO1
@@ -220,7 +233,16 @@ func main() {
 				DispTime_oled(display, RemainingTime)
 			} else {
 				state = Waiting
-				endSound(speaker) // 終了音（近）(4)
+				// 終了音 3種類の中から選択する
+				// 0 JIS0013 終了音 // 終了音（近）(4)
+				// 1 thirori sound
+				// 2 ultra man color timer
+				choice := 1
+				switch choice {
+					case 0 : go playJISS0013end(speaker)
+					case 1 : go playThirori(speaker)
+					case 2 : go playColorTimer(speaker)
+				}
 			}
 			break
 		}
@@ -243,8 +265,10 @@ func errorSound(speaker tone.Speaker) {
 	speaker.SetNote(mute)
 }
 
+// JIS S 0013:2022
+// アクセシブルデザインー消費生活用製品の報知音
 // 終了音（近）(4)
-func endSound(speaker tone.Speaker) {
+func playJISS0013end(speaker tone.Speaker) {
 	var on1 time.Duration = 100
 	var off1 time.Duration = 100
 	var on2 time.Duration = 500
@@ -260,6 +284,42 @@ func endSound(speaker tone.Speaker) {
 		speaker.SetNote(mute)
 		time.Sleep(time.Millisecond * off2)
 	}
+}
+
+// 終了音 thirori
+// ティロリ!!ティロリ!!ティロリ!!
+// 某大手ハンバーガーチェーンで、ポテトが揚がったときに店内で流れるタイマー音
+func playThirori(speaker tone.Speaker) {
+//	var Repetitions int = 16             // 繰返しの回数
+	var Repetitions int = 3             // 繰返しの回数
+	// 楽曲のテンポは、125なので、8分音符
+	for i := 0; i < Repetitions; i++ {
+		speaker.SetNote(tone.G6)            // So
+		time.Sleep(time.Millisecond * 240)  // eighth note
+		speaker.SetNote(tone.E6)            // Mi
+		time.Sleep(time.Millisecond * 240)  // eighth note
+		speaker.SetNote(tone.G6)            // So
+		time.Sleep(time.Millisecond * 240)  // eighth note
+		speaker.SetNote(0)                  // 休符
+		time.Sleep(time.Millisecond * 240)  // eighth note
+	}
+	speaker.SetNote(mute)
+}
+
+// 終了音 color timer
+// ウルトラマンのカラータイマーの音
+// A6 0.2秒、D6 0.4秒の繰り返し
+// 
+func playColorTimer(speaker tone.Speaker) {
+	var Repetitions int = 20             // 繰返しの回数
+	// 楽曲のテンポは、125なので、8分音符
+	for i := 0; i < Repetitions; i++ {
+		speaker.SetNote(tone.A6)            // A6 La 1749
+		time.Sleep(time.Millisecond * 200)  // eighth note
+		speaker.SetNote(tone.D6)            // D6 Re 1175 
+		time.Sleep(time.Millisecond * 400)  // quarter note
+	}
+	speaker.SetNote(mute)
 }
 
 // 起動音、リセット音

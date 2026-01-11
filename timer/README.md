@@ -40,6 +40,20 @@
 > tinygo build -o timer.uf2 --target xiao-rp2040 --size short .
 ```
 
+### 追加機能
+
+終了音に、某大手ハンバーガーチェーンで、ポテトが揚がったときに店内で流れるタイマー音を加えました。  
+
+[ティロリサウンド](https://www.youtube.com/watch?v=8NjhfastLts)
+
+ソースコード中のmain()関数内にある終了音の部分をendSound(speaker) からthiroriSound(speaker)に書き換えて、コンパイルして下さい。  
+
+```go
+// 終了音
+    endSound(speaker) // 終了音（近）(4)
+//	thiroriSound(speaker) // 終了音 thirori
+```
+
 ### 応用例
 
 conf2025badge は、首に掛けて使うことを前提に作られています。  
